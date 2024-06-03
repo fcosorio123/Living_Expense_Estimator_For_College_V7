@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Expense Estimator for College V6</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        label {
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        input,
+        select {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: start;
+        }
+        .expense-section {
+            display: none; /* Hide sections initially */
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .expense-table {
+            width: 45%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .expense-table table {
+            width: 100%;
+            text-align: left;
+        }
+        .expense-table table th,
+        .expense-table table td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+        .edit-btn,
+        .add-btn,
+        .delete-btn {
+            background-color: #ddd;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+        .edit-btn:hover,
+        .add-btn:hover,
+        .delete-btn:hover {
+            background-color: #bbb;
+        }
+        .category-btn {
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            background-color: white;
+        }
+        .category-btn.selected {
+            background-color: lightgreen;
+            color: black;
+        }
+        .sticky-save {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .total {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 30px;
+        }
+        .radio-row {
+            display: flex;
+            margin-bottom: 4px;
+        }
+        .radio-option {
+            display: flex;
+            flex-direction: row;
+            margin-right: 3px;
+        }
+        .edit-icon {
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .inline-input {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-top: -10px;
+        }
+        .checkbox-label input {
+            margin-right: 2px; /* Reduced margin */
+        }
+        .checkbox-label label {
+            margin-left: 2px; /* Reduced margin */
+        }
+    </style>
+</head>
+<body>
+    <h1>Living Expense Estimator for your College Semester</h1>
+        Instructions: Please provide the following information to estimate your living expenses during your college semester.
+<hr>
+    <!-- Sticky Save Button -->
+    <button class="sticky-save" onclick="saveData()">Save</button>
+
+
+
+
+    <div class="section">
+        <h3>College Information</h3>
+        <label for="term">School Semester</label>
+        <select id="term" required disabled>
+            <option value="Fall 2024">Fall 2024</option>
+        </select>
+        <label for="start-date">Start of Semester</label>
+        <input type="date" id="start-date" value="2024-09-15" required />
+        <label for="end-date">End of Semester</label>
+        <input type="date" id="end-date" value="2024-12-15" required />      
+        <label for="zip-code">Zip Code (During College)</label>
+        <input type="text" id="zip-code" value="14256" required/>    
+    </div>
+    <hr>
+    <div class="section">
+        <h3>Personal Information</h3>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>1. Do you often buy food outside of your meal plan?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="food-outside" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="food-outside" value="no" /> No
+                    </td>
+                </tr>
+                <tr class="radio-row">
+                    <td><label>2. Are you currently paying for rent?</label></td>
+                    <td class="radio-option">
+                        <input type="radio" name="paying-rent" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="paying-rent" value="no" /> No
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>3. Do you own a car and use it more than a few times a week?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="own-car" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="own-car" value="no" /> No
+                    </td>
+                </tr>
+                <tr class="radio-row">
+                    <td>
+                        <label>4. Are you currently making car loan payments?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="car-loan" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="car-loan" value="no" /> No
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>5. Are you currently making credit card payments?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="credit-card" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="credit-card" value="no" /> No
+                    </td>
+                </tr>
+                <tr class="radio-row">
+                    <td>
+                        <label>6. Are you currently saving money regularly?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="saving-regularly" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="saving-regularly" value="no" /> No
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>7. Which fits your profile the closest while you are at school this upcoming school semester?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="profile" value="resident" /> Resident
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="profile" value="off-campus" /> Off-Campus
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="profile" value="commuter" />Commuter
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+<hr>
+    <div class="section">
+        <h3>Expense Categories</h3>
+        <p>
+            Instructions: We'll estimate your expenses for both during college and for periods outside of school. Please select whether you plan to be FRUGAL, spend an AVERAGE amount, or live GLAMOROUSLY.
+        </p>
+    </br>
+        <div class="button-group">
+            <button id="frugal" class="category-btn" onclick="displayExpenseSections('frugal')">FRUGAL</button>
+            <button id="average" class="category-btn" onclick="displayExpenseSections('average')">AVERAGE</button>
+            <button id="glamorous" class="category-btn" onclick="displayExpenseSections('glamorous')">GLAMOROUS</button>
+        </div>
+        <div class="expense-section" id="expense-sections">
+            <!-- Essential and Non-Essential sections will be dynamically added here -->
+        </div>
+    </div>
+
+
+
+
+    <div class="section total">
+        <button onclick="calculateTotal()">Calculate Total</button>
+        <p>Total for Full Period (From Start to End of Semester): <span id="total-cost">$0.00</span></p>
+        <p>Average Monthly Spending: <span id="monthly-cost">$0.00</span></p>
+    </div>
+    <hr>
+
+
+
+
+    <div class="section">
+        <h3>Calculating Monthly Surplus</h3>
+        <div class="inline-input">
+            <label for="monthly-income">Average Monthly Income:</label>
+            <input type="number" id="monthly-income" value="0" min="0" max="5000" step="100" disabled>
+            <div class="checkbox-label">
+                <small><label for="enable-income">Check to update entry field</label></small>
+                <small><input type="checkbox" id="enable-income" onclick="toggleInput('monthly-income')"></small>
+            </div>
+        </div>
+       
+        <div class="inline-input">
+            <label for="monthly-savings">Average Monthly Savings:</label>
+            <input type="number" id="monthly-savings" value="0" min="0" step="50" disabled>
+            <div class="checkbox-label">
+                <small><label for="enable-savings">Check to update entry field</label></small>
+                <small><input type="checkbox" id="enable-savings" onclick="toggleInput('monthly-savings')"></small>
+            </div>
+        </div>
+
+
+
+
+        <p>Average Monthly Spending: <span id="display-monthly-cost">$0.00</span></p>
+        <p>Monthly Surplus/Deficit: <span id="monthly-surplus" style="color: black;">$0.00</span></p>
+    </div>
+
+
+
+
+    <hr>
+    <div class="section">
+        <button onclick="showGraph()">Show Graph</button>
+        <canvas id="income-expense-chart" width="400" height="200"></canvas>
+    </div>
+
+
+
+
+    <!-- Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Edit Expense Category</h3>
+            <label for="modal-category">Category Name</label>
+            <input type="text" id="modal-category" value="" />
+            <label for="modal-amount">Amount</label>
+            <input type="number" id="modal-amount" value="" />
+            <label for="modal-frequency">Frequency</label>
+            <select id="modal-frequency">
+                <option value="daily">Daily</option>
+                <option value="weekly" selected>Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+            <label for="modal-covered-by">Covered By</label>
+            <select id="modal-covered-by">
+                <option value="Employment Income" selected>Employment Income</option>
+                <option value="Checking/Savings">Checking/Savings</option>
+                <option value="Friends & Family">Friends & Family</option>
+                <option value="Other">Other</option>
+            </select>
+            <label for="modal-start-date">Start Date (Defaults to Start of Semester)</label>
+            <input type="date" id="modal-start-date" value="" />
+            <label for="modal-end-date">End Date (Defaults to End of Semester)</label>
+            <input type="date" id="modal-end-date" value="" />
+            <button onclick="saveModalData()">Save</button>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const defaultExpenses = {
+            frugal: {
+                essential: {
+                    Groceries: 30,
+                    Rent: 0,
+                    Transportation: 10,
+                    Health: 5,
+                    "Personal Care": 5,
+                    "Education-Related": 20,
+                    "Credit Card Payments": 10,
+                    "Other Loan Payments": 0,
+                },
+                nonEssential: {
+                    Entertainment: 0,
+                    "Eating Out": 0,
+                    Splurges: 0,
+                    Hobbies: 0,
+                    "Setting Money Aside": 5,
+                },
+            },
+            average: {
+                essential: {
+                    Groceries: 45,
+                    Rent: 0,
+                    Transportation: 15,
+                    Health: 7.5,
+                    "Personal Care": 7.5,
+                    "Education-Related": 30,
+                    "Credit Card Payments": 15,
+                    "Other Loan Payments": 0,
+                },
+                nonEssential: {
+                    Entertainment: 10,
+                    "Eating Out": 15,
+                    Splurges: 10,
+                    Hobbies: 10,
+                    "Setting Money Aside": 7.5,
+                },
+            },
+            glamorous: {
+                essential: {
+                    Groceries: 70,
+                    Rent: 200,
+                    Transportation: 30,
+                    Health: 15,
+                    "Personal Care": 20,
+                    "Education-Related": 50,
+                    "Credit Card Payments": 30,
+                    "Other Loan Payments": 10,
+                },
+                nonEssential: {
+                    Entertainment: 50,
+                    "Eating Out": 50,
+                    Splurges: 40,
+                    Hobbies: 30,
+                    "Setting Money Aside": 20,
+                },
+            },
+        };
+
+
+
+
+        let currentEditRow = null;
+        let currentCategoryType = null;  // to track the current category type
+        let chart = null; // to keep track of the chart instance
+
+
+
+
+        function displayExpenseSections(categoryType) {
+            currentCategoryType = categoryType;  // Update the current category type
+            const expenseSections = document.querySelector("#expense-sections");
+            expenseSections.innerHTML = ""; // Clear existing sections
+            expenseSections.style.display = 'flex'; // Show the expense sections
+
+
+
+
+            const essentialExpenses = defaultExpenses[categoryType].essential;
+            const nonEssentialExpenses = defaultExpenses[categoryType].nonEssential;
+
+
+
+
+            // Change button colors
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(categoryType).classList.add('selected');
+
+
+
+
+            // Build essential section
+            const essentialSection = createExpenseTable(
+                "Essential Expenses",
+                essentialExpenses,
+                "essential-edit",
+                "essential-add"
+            );
+            const nonEssentialSection = createExpenseTable(
+                "Non-Essential Expenses",
+                nonEssentialExpenses,
+                "nonessential-edit",
+                "nonessential-add"
+            );
+
+
+
+
+            expenseSections.appendChild(essentialSection);
+            expenseSections.appendChild(nonEssentialSection);
+
+
+
+
+            addEditFunctionality("essential-edit", "essential-add");
+            addEditFunctionality("nonessential-edit", "nonessential-add");
+        }
+
+
+
+
+        function createExpenseTable(title, data, editBtnId, addBtnId) {
+            const section = document.createElement("div");
+            section.className = "expense-table";
+
+
+
+
+            const sectionTitle = document.createElement("h3");
+            sectionTitle.innerText = title;
+            section.appendChild(sectionTitle);
+
+
+
+
+            const editButton = document.createElement("button");
+            editButton.innerText = "Edit";
+            editButton.id = editBtnId;
+            editButton.className = "edit-btn";
+            section.appendChild(editButton);
+
+
+
+
+            const addButton = document.createElement("button");
+            addButton.innerText = "+";
+            addButton.id = addBtnId;
+            addButton.className = "add-btn";
+            section.appendChild(addButton);
+
+
+
+
+            const table = document.createElement("table");
+            const headerRow = document.createElement("tr");
+            const header1 = document.createElement("th");
+            header1.innerText = "Category";
+            const header2 = document.createElement("th");
+            header2.innerText = "Amount";
+            const header3 = document.createElement("th");
+            header3.innerText = "Actions";
+            headerRow.appendChild(header1);
+            headerRow.appendChild(header2);
+            headerRow.appendChild(header3);
+            table.appendChild(headerRow);
+
+
+
+
+            // Add data rows
+            for (const [category, value] of Object.entries(data)) {
+                const row = document.createElement("tr");
+                const cell1 = document.createElement("td");
+                cell1.innerText = category;
+                const cell2 = document.createElement("td");
+                const input = document.createElement("input");
+                input.type = "number";
+                input.value = value;
+                input.dataset.initialValue = value; // Store the initial value to check for changes later
+                cell2.appendChild(input);
+
+
+
+
+                const cell3 = document.createElement("td");
+                const editIcon = document.createElement("img");
+                editIcon.src = "https://img.icons8.com/material-rounded/24/000000/pencil.png";
+                editIcon.className = "edit-icon";
+                editIcon.addEventListener("click", () => openModal(row));
+                cell3.appendChild(editIcon);
+
+
+
+
+                const editLabel = document.createElement("span");
+                editLabel.innerText = "Edit";
+                cell3.appendChild(editLabel);
+
+
+
+
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                row.appendChild(cell3);
+
+
+
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerText = "Delete";
+                deleteBtn.addEventListener("click", function () {
+                    table.removeChild(row);
+                });
+
+
+
+
+                row.appendChild(deleteBtn);
+
+
+
+
+                table.appendChild(row);
+            }
+
+
+
+
+            section.appendChild(table);
+
+
+
+
+            return section;
+        }
+
+
+
+
+        function openModal(row) {
+            currentEditRow = row;
+            const modal = document.getElementById("editModal");
+            modal.style.display = "block";
+
+
+
+
+            const category = row.children[0].innerText;
+            const amount = row.children[1].querySelector("input").value;
+            const frequency = row.dataset.frequency || "weekly";
+            const coveredBy = row.dataset.coveredBy || "Employment Income";
+            const startDate = row.dataset.startDate || document.getElementById("start-date").value;
+            const endDate = row.dataset.endDate || document.getElementById("end-date").value;
+
+
+
+
+            document.getElementById("modal-category").value = category;
+            document.getElementById("modal-amount").value = amount;
+            document.getElementById("modal-frequency").value = frequency;
+            document.getElementById("modal-covered-by").value = coveredBy;
+            document.getElementById("modal-start-date").value = startDate;
+            document.getElementById("modal-end-date").value = endDate;
+
+
+
+
+            console.log("Opening modal for:", { category, amount, frequency, coveredBy, startDate, endDate });
+        }
+
+
+
+
+        function closeModal() {
+            const modal = document.getElementById("editModal");
+            modal.style.display = "none";
+            console.log("Modal Closed");
+        }
+
+
+
+
+        function saveModalData() {
+            if (currentEditRow) {
+                const category = document.getElementById("modal-category").value;
+                const amount = document.getElementById("modal-amount").value;
+                const frequency = document.getElementById("modal-frequency").value;
+                const coveredBy = document.getElementById("modal-covered-by").value;
+                const startDate = document.getElementById("modal-start-date").value;
+                const endDate = document.getElementById("modal-end-date").value;
+
+
+
+
+                console.log("Saving modal data:", { category, amount, frequency, coveredBy, startDate, endDate });
+
+
+
+
+                currentEditRow.children[0].innerText = category;
+                currentEditRow.children[1].querySelector("input").value = amount;
+
+
+
+
+                currentEditRow.dataset.frequency = frequency;
+                currentEditRow.dataset.coveredBy = coveredBy;
+                currentEditRow.dataset.startDate = startDate;
+                currentEditRow.dataset.endDate = endDate;
+
+
+
+
+                console.log("Updated current row data:", {
+                    category: currentEditRow.dataset.category,
+                    amount: currentEditRow.dataset.amount,
+                    frequency: currentEditRow.dataset.frequency,
+                    coveredBy: currentEditRow.dataset.coveredBy,
+                    startDate: currentEditRow.dataset.startDate,
+                    endDate: currentEditRow.dataset.endDate
+                });
+
+
+
+
+                closeModal();
+            }
+        }
+
+
+
+
+        function addEditFunctionality(editBtnId, addBtnId) {
+            const editButton = document.getElementById(editBtnId);
+            const addButton = document.getElementById(addBtnId);
+            let isEditing = false;
+
+
+
+
+            editButton.addEventListener("click", function () {
+                const tableInputs = this.parentNode.querySelectorAll("input");
+                isEditing = !isEditing;
+
+
+
+
+                tableInputs.forEach((input) => {
+                    input.readOnly = !isEditing;
+                });
+
+
+
+
+                if (isEditing) {
+                    this.innerText = "Save Changes";
+                } else {
+                    this.innerText = "Edit";
+                }
+            });
+
+
+
+
+            addButton.addEventListener("click", function () {
+                const table = this.parentNode.querySelector("table");
+                const row = document.createElement("tr");
+
+
+
+
+                const newCategoryCell = document.createElement("td");
+                const newInputCell = document.createElement("td");
+                const newInput = document.createElement("input");
+
+
+
+
+                newInput.type = "number";
+                newInputCell.appendChild(newInput);
+
+
+
+
+                newCategoryCell.contentEditable = true;
+                newCategoryCell.innerText = "New Category";
+
+
+
+
+                const cellActions = document.createElement("td");
+                const editIcon = document.createElement("img");
+                editIcon.src = "https://img.icons8.com/material-rounded/24/000000/pencil.png";
+                editIcon.className = "edit-icon";
+                editIcon.addEventListener("click", () => openModal(row));
+                cellActions.appendChild(editIcon);
+
+
+
+
+                const editLabel = document.createElement("span");
+                editLabel.innerText = "Edit";
+                cellActions.appendChild(editLabel);
+
+
+
+
+                row.appendChild(newCategoryCell);
+                row.appendChild(newInputCell);
+                row.appendChild(cellActions);
+
+
+
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerText = "Delete";
+                deleteBtn.addEventListener("click", function () {
+                    table.removeChild(row);
+                });
+
+
+
+
+                row.appendChild(deleteBtn);
+
+
+
+
+                table.appendChild(row);
+
+
+
+
+                if (!isEditing) {
+                    editButton.click();
+                }
+            });
+        }
+
+
+
+
+        function calculateTotal() {
+            let total = 0;
+            const frequencyMultipliers = {
+                daily: 365 / 12,   // Average days per month
+                weekly: 52 / 12,   // Average weeks per month
+                monthly: 1,
+                yearly: 1 / 12,
+            };
+
+
+
+
+            let earliestDate = new Date();
+            let latestDate = new Date(0); // Initialize to the epoch start
+
+
+
+
+            document.querySelectorAll("#expense-sections table tr").forEach((row) => {
+                const inputs = row.querySelectorAll("input");
+                const frequency = row.dataset.frequency || "weekly";
+                const startDate = new Date(row.dataset.startDate || document.getElementById("start-date").value);
+                const endDate = new Date(row.dataset.endDate || document.getElementById("end-date").value);
+
+
+
+
+                if (inputs.length > 0 && frequency) {
+                    const value = parseFloat(inputs[0].value) || 0;
+                    const daysBetween = (endDate - startDate) / (1000 * 60 * 60 * 24);
+                    const monthlyValue = value * frequencyMultipliers[frequency];
+                    const totalValue = value * frequencyMultipliers[frequency] * (daysBetween / 30.44); // Total value for the period
+
+
+
+
+                    total += totalValue;
+
+
+
+
+                    if (startDate < earliestDate) earliestDate = startDate;
+                    if (endDate > latestDate) latestDate = endDate;
+                }
+            });
+
+
+
+
+            const totalCost = total;
+            const monthsBetween = (latestDate.getFullYear() - earliestDate.getFullYear()) * 12 + (latestDate.getMonth() - earliestDate.getMonth()) + 1;
+            const averageMonthlySpending = total / monthsBetween;
+
+
+
+
+            document.getElementById("total-cost").innerText = `$${totalCost.toFixed(2)}`;
+            document.getElementById("monthly-cost").innerText = `$${averageMonthlySpending.toFixed(2)}`;
+            document.getElementById("display-monthly-cost").innerText = `$${averageMonthlySpending.toFixed(2)}`;
+            calculateSurplus();
+        }
+
+
+
+
+        function calculateSurplus() {
+            const income = parseFloat(document.getElementById("monthly-income").value);
+            const savings = parseFloat(document.getElementById("monthly-savings").value);
+            const spending = parseFloat(document.getElementById("monthly-cost").innerText.replace('$', ''));
+            const surplus = income - (spending + savings);
+            const surplusElement = document.getElementById("monthly-surplus");
+            surplusElement.innerText = `$${surplus.toFixed(2)}`;
+
+
+
+
+            if (surplus > 0) {
+                surplusElement.style.color = "green";
+            } else if (surplus < 0) {
+                surplusElement.style.color = "red";
+            } else {
+                surplusElement.style.color = "black";
+            }
+        }
+
+
+
+
+        document.getElementById("monthly-income").addEventListener("input", calculateSurplus);
+        document.getElementById("monthly-savings").addEventListener("input", calculateSurplus);
+
+
+
+
+        function showGraph() {
+            const ctx = document.getElementById('income-expense-chart').getContext('2d');
+            const monthlyIncome = parseFloat(document.getElementById("monthly-income").value);
+            const monthlySpending = parseFloat(document.getElementById("monthly-cost").innerText.replace('$', ''));
+            const monthlySavings = parseFloat(document.getElementById("monthly-savings").value);
+
+
+
+
+            if (chart) {
+                chart.destroy();
+            }
+
+
+
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Average Monthly Income', 'Average Monthly Spending and Savings'],
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: [monthlyIncome, 0],
+                            backgroundColor: '#4caf50'
+                        },
+                        {
+                            label: 'Spending',
+                            data: [0, monthlySpending],
+                            backgroundColor: '#f44336'
+                        },
+                        {
+                            label: 'Savings',
+                            data: [0, monthlySavings],
+                            backgroundColor: '#2196f3'
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            beginAtZero: true,
+                            stacked: true
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+
+        function toggleInput(inputId) {
+            const input = document.getElementById(inputId);
+            input.disabled = !input.disabled;
+        }
+
+
+
+
+        function saveData() {
+            console.log("Data has been saved temporarily.");
+            // This is where to implement session storage or other temporary storage solutions
+        }
+    </script>
+</body>
+</html>
