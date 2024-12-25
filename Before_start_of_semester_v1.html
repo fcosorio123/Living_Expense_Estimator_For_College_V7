@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Living Expense Estimator for College V6</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .section {
+            margin: 20px 0;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        input,
+        select {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: start;
+            flex-wrap: wrap;
+        }
+        .expense-section {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .expense-table {
+            width: 45%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .expense-table table {
+            width: 100%;
+            text-align: left;
+        }
+        .expense-table table th,
+        .expense-table table td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+        .edit-btn,
+        .add-btn,
+        .delete-btn {
+            background-color: #ddd;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .edit-btn:hover,
+        .add-btn:hover,
+        .delete-btn:hover {
+            background-color: #bbb;
+        }
+        .category-btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            background-color: white;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+            margin: 5px;
+        }
+        .category-btn.selected {
+            background-color: lightgreen;
+            color: black;
+        }
+        .sticky-save {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+        .sticky-save:hover {
+            background-color: #45a049;
+        }
+        .total {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 30px;
+        }
+        .radio-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .radio-option {
+            display: flex;
+            flex-direction: row;
+            margin-right: 15px;
+        }
+        .edit-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            width: 20px;
+            height: 20px;
+        }
+        /* Plan Timeline Styles */
+        #plan-timeline-section {
+            margin-top: 40px;
+        }
+        .timeline {
+            position: relative;
+            width: 100%;
+            height: 80px;
+            margin: 20px 0;
+            background-color: #e0e0e0;
+            border-radius: 40px;
+            overflow: hidden;
+        }
+        .timeline-segment {
+            position: absolute;
+            height: 100%;
+            border-radius: 40px;
+            transition: width 0.3s, left 0.3s;
+        }
+        .winter-break {
+            background-color: #2196F3; /* Blue */
+            z-index: 1;
+        }
+        .spring-semester {
+            background-color: #4CAF50; /* Green */
+            z-index: 1;
+        }
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            width: 100%;
+            height: 4px;
+            background-color: #ccc;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+        .timeline-marker {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: #ff5722; /* Orange */
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .timeline-marker.start {
+            /* left will be set dynamically */
+        }
+        .timeline-marker.end {
+            /* left will be set dynamically */
+        }
+        .marker-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 2px 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .timeline-label {
+            position: absolute;
+            top: -25px;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 2px 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .winter-break-label {
+            /* Position based on segment */
+        }
+        .spring-semester-label {
+            /* Position based on segment */
+        }
+        /* Placeholder Message */
+        #expense-sections-placeholder {
+            text-align: center;
+            color: #777;
+            font-style: italic;
+            margin-top: 20px;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+        @media (max-width: 768px) {
+            .expense-table {
+                width: 100%;
+            }
+            .modal-content {
+                width: 90%;
+            }
+            .timeline-label.winter-break-label {
+                /* Adjust positions for mobile if necessary */
+            }
+            .timeline-label.spring-semester-label {
+                /* Adjust positions for mobile if necessary */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>LIVING EXPENSE ESTIMATOR FOR YOUR COLLEGE SEMESTER</h1>
+    <h3>
+        INSTRUCTIONS: Please provide the following information to estimate your living expenses during your college semester.
+    </h3>
+    <br/>
+
+
+    <!-- Settings Section -->
+    <div class="section" id="settings-section">
+        <h3>SETTINGS</h3>
+        <div id="settings-view">
+            <p><strong>Winter Break Start Date:</strong> <span id="winter-break-start-display"></span></p>
+            <p><strong>Winter Break End Date:</strong> <span id="winter-break-end-display"></span></p>
+            <p><strong>Spring Semester Start Date:</strong> <span id="spring-semester-start-display"></span></p>
+            <p><strong>Spring Semester End Date:</strong> <span id="spring-semester-end-display"></span></p>
+            <button id="edit-settings-btn" class="edit-btn">Edit Settings</button>
+        </div>
+        <div id="settings-edit" style="display: none;">
+            <label for="winter-break-start">Winter Break Start Date</label>
+            <input type="date" id="winter-break-start" />
+
+
+            <label for="winter-break-end">Winter Break End Date</label>
+            <input type="date" id="winter-break-end" />
+
+
+            <label for="spring-semester-start">Spring Semester Start Date</label>
+            <input type="date" id="spring-semester-start" />
+
+
+            <label for="spring-semester-end">Spring Semester End Date</label>
+            <input type="date" id="spring-semester-end" />
+
+
+            <button id="save-settings-btn" class="edit-btn">Save Settings</button>
+            <button id="cancel-settings-btn" class="delete-btn">Cancel</button>
+        </div>
+    </div>
+    <br/>
+
+
+    <!-- Sticky Save Button -->
+    <button class="sticky-save" onclick="saveData()">Save</button>
+
+
+    <div class="section">
+        <h3>COLLEGE INFORMATION</h3>
+        <label for="term">School Semester</label>
+        <select id="term" required disabled>
+            <!-- Changed from "Fall 2024" to "Spring 2025" -->
+            <option value="Spring 2025">Spring 2025</option>
+        </select>
+
+
+        <label for="start-plan">Start of Plan</label>
+        <select id="start-plan" required>
+            <!-- Options will be populated dynamically -->
+        </select>
+
+
+        <label for="end-plan">End of Plan</label>
+        <select id="end-plan" required>
+            <!-- Options will be populated dynamically -->
+        </select>
+
+
+        <label for="zip-code">Zip Code (During College)</label>
+        <input type="text" id="zip-code" value="14256" required/>    
+    </div>
+    <br/>
+
+
+    <!-- Plan Timeline Section -->
+    <div class="section" id="plan-timeline-section">
+        <h3>PLAN TIMELINE</h3>
+        <div class="timeline">
+            <!-- Timeline Line -->
+            <div class="timeline-line"></div>
+
+
+            <!-- Timeline Segments -->
+            <div class="timeline-segment winter-break" id="winter-break-segment"></div>
+            <div class="timeline-segment spring-semester" id="spring-semester-segment"></div>
+
+
+            <!-- Timeline Markers -->
+            <div class="timeline-marker start" id="plan-start-marker">
+                <span class="marker-label" id="start-marker-label"></span>
+            </div>
+            <div class="timeline-marker end" id="plan-end-marker">
+                <span class="marker-label" id="end-marker-label"></span>
+            </div>
+
+
+            <!-- Segment Labels -->
+            <span class="timeline-label winter-break-label">Winter Break</span>
+            <span class="timeline-label spring-semester-label">Spring Semester</span>
+        </div>
+    </div>
+    <br/>
+
+
+    <div class="section">
+        <h3>PERSONAL INFORMATION</h3>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>1. Do you often buy food outside of your meal plan?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="food-outside" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="food-outside" value="no" /> No
+                    </td>
+                </tr>
+                <tr class="radio-row">
+                    <td><label>2. Are you currently paying for rent?</label></td>
+                    <td class="radio-option">
+                        <input type="radio" name="paying-rent" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="paying-rent" value="no" /> No
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>3. Do you own a car and use it more than a few times a week?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="own-car" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="own-car" value="no" /> No
+                    </td>
+                </tr>
+                <tr class="radio-row">
+                    <td>
+                        <label>4. Are you currently making car loan payments?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="car-loan" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="car-loan" value="no" /> No
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>5. Are you currently making credit card payments?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="credit-card" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="credit-card" value="no" /> No
+                    </td>
+                </tr>
+                <tr class="radio-row">
+                    <td>
+                        <label>6. Are you currently saving money regularly?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="saving-regularly" value="yes" /> Yes
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="saving-regularly" value="no" /> No
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="radio-group">
+            <table>
+                <tr class="radio-row">
+                    <td>
+                        <label>7. Which fits your profile the closest while you are at school this upcoming school semester?</label>
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="profile" value="resident" /> Resident
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="profile" value="off-campus" /> Off-Campus
+                    </td>
+                    <td class="radio-option">
+                        <input type="radio" name="profile" value="commuter" /> Commuter
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <br/>
+
+
+    <div class="section">
+        <h3>EXPENSE CATEGORIES</h3>
+        <p>
+            INSTRUCTIONS: We'll estimate your expenses for both during college and for periods outside of school. Please select whether you plan to be FRUGAL, spend an AVERAGE amount, or live GLAMOROUSLY.
+        </p>
+        <br/>
+        <div class="button-group">
+            <button id="frugal" class="category-btn" onclick="displayExpenseSections('frugal')">FRUGAL</button>
+            <button id="average" class="category-btn" onclick="displayExpenseSections('average')">AVERAGE</button>
+            <button id="glamorous" class="category-btn" onclick="displayExpenseSections('glamorous')">GLAMOROUS</button>
+        </div>
+        <div class="expense-section" id="expense-sections">
+            <!-- Essential and Non-Essential sections will be dynamically added here -->
+            <div id="expense-sections-placeholder">
+                Please select an expense category to view and edit your expenses.
+            </div>
+        </div>
+    </div>
+
+
+    <div class="section total">
+        <button onclick="calculateTotal()">Calculate Total</button>
+        <p>Total for Full Period (During College & Outside of School): <span id="total-cost">$0.00</span></p>
+        <p>Average Monthly Spending: <span id="monthly-cost">$0.00</span></p>
+    </div>
+
+
+    <!-- Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Edit Expense Category</h3>
+            <label for="modal-category">Category Name</label>
+            <input type="text" id="modal-category" value="" />
+            <label for="modal-amount">Amount</label>
+            <input type="number" id="modal-amount" value="" />
+            <label for="modal-frequency">Frequency</label>
+            <select id="modal-frequency">
+                <option value="daily">Daily</option>
+                <option value="weekly" selected>Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+            <label for="modal-covered-by">Covered By</label>
+            <select id="modal-covered-by">
+                <option value="Employment Income" selected>Employment Income</option>
+                <option value="Checking/Savings">Checking/Savings</option>
+                <option value="Friends & Family">Friends & Family</option>
+                <option value="Other">Other</option>
+            </select>
+            <label for="modal-today-date">Start Date (Defaults to "Start of Plan")</label>
+            <input type="date" id="modal-today-date" value="" />
+            <label for="modal-end-date">End Date (Defaults to "End of Plan")</label>
+            <input type="date" id="modal-end-date" value="" />
+            <button onclick="saveModalData()">Save</button>
+        </div>
+    </div>
+
+
+    <script>
+        // Default Settings with updated Spring Semester End Date
+        const defaultSettings = {
+            winterBreakStart: '2024-12-15',
+            winterBreakEnd: '2025-01-15',
+            springSemesterStart: '2025-01-16',
+            springSemesterEnd: '2025-05-14' // Changed from '2025-05-15' to '2025-05-14'
+        };
+
+
+        // Load Settings from localStorage or use defaults
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('semesterSettings')) || defaultSettings;
+            return settings;
+        }
+
+
+        // Save Settings to localStorage
+        function saveSettings(settings) {
+            localStorage.setItem('semesterSettings', JSON.stringify(settings));
+        }
+
+
+        // Initialize Settings Display
+        function initializeSettings() {
+            const settings = loadSettings();
+            document.getElementById('winter-break-start-display').innerText = formatDate(settings.winterBreakStart);
+            document.getElementById('winter-break-end-display').innerText = formatDate(settings.winterBreakEnd);
+            document.getElementById('spring-semester-start-display').innerText = formatDate(settings.springSemesterStart);
+            document.getElementById('spring-semester-end-display').innerText = formatDate(settings.springSemesterEnd);
+        }
+
+
+        // Format Date from YYYY-MM-DD to MM/DD/YYYY
+        function formatDate(dateStr) {
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            return new Date(dateStr).toLocaleDateString(undefined, options);
+        }
+
+
+        // Populate Start and End Plan Selectors
+        function populatePlanSelectors() {
+            const settings = loadSettings();
+            const startPlan = document.getElementById('start-plan');
+            const endPlan = document.getElementById('end-plan');
+
+
+            // Clear existing options
+            startPlan.innerHTML = '';
+            endPlan.innerHTML = '';
+
+
+            // Start of Plan Options
+            const startOptions = [
+                { value: settings.winterBreakStart, text: `Start of Winter Break (${formatDate(settings.winterBreakStart)})` },
+                { value: settings.springSemesterStart, text: `Start of Spring Semester (${formatDate(settings.springSemesterStart)})` }
+            ];
+
+
+            startOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.value;
+                opt.text = option.text;
+                startPlan.appendChild(opt);
+            });
+
+
+            // End of Plan Options
+            const endOptions = [
+                { value: settings.winterBreakEnd, text: `End of Winter Break (${formatDate(settings.winterBreakEnd)})` },
+                { value: settings.springSemesterEnd, text: `End of Spring Semester (${formatDate(settings.springSemesterEnd)})` }
+            ];
+
+
+            endOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.value;
+                opt.text = option.text;
+                endPlan.appendChild(opt);
+            });
+
+
+            // Load saved selections or set defaults
+            const savedSelections = JSON.parse(localStorage.getItem('planSelections')) || {
+                startPlan: settings.winterBreakStart,
+                endPlan: settings.springSemesterEnd // Changed default endPlan to springSemesterEnd
+            };
+
+
+            startPlan.value = savedSelections.startPlan;
+            endPlan.value = savedSelections.endPlan;
+
+
+            // Update the Plan Timeline based on current selections
+            updateTimeline();
+        }
+
+
+        // Initialize the application
+        function initializeApp() {
+            initializeSettings();
+            populatePlanSelectors();
+            // Remove default selection
+            // displayExpenseSections('average'); // Default selection removed
+            // Ensure no button is selected initially
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            // Display placeholder message
+            const expenseSections = document.getElementById('expense-sections');
+            expenseSections.innerHTML = '<div id="expense-sections-placeholder">Please select an expense category to view and edit your expenses.</div>';
+        }
+
+
+        // Event Listeners for Settings
+        document.getElementById('edit-settings-btn').addEventListener('click', function() {
+            document.getElementById('settings-view').style.display = 'none';
+            document.getElementById('settings-edit').style.display = 'block';
+
+
+            const settings = loadSettings();
+            document.getElementById('winter-break-start').value = settings.winterBreakStart;
+            document.getElementById('winter-break-end').value = settings.winterBreakEnd;
+            document.getElementById('spring-semester-start').value = settings.springSemesterStart;
+            document.getElementById('spring-semester-end').value = settings.springSemesterEnd;
+        });
+
+
+        document.getElementById('cancel-settings-btn').addEventListener('click', function() {
+            document.getElementById('settings-edit').style.display = 'none';
+            document.getElementById('settings-view').style.display = 'block';
+        });
+
+
+        document.getElementById('save-settings-btn').addEventListener('click', function() {
+            const newSettings = {
+                winterBreakStart: document.getElementById('winter-break-start').value,
+                winterBreakEnd: document.getElementById('winter-break-end').value,
+                springSemesterStart: document.getElementById('spring-semester-start').value,
+                springSemesterEnd: document.getElementById('spring-semester-end').value
+            };
+
+
+            // Validation: Ensure dates are logical
+            if (
+                new Date(newSettings.winterBreakStart) >= new Date(newSettings.winterBreakEnd) ||
+                new Date(newSettings.winterBreakEnd) >= new Date(newSettings.springSemesterStart) ||
+                new Date(newSettings.springSemesterStart) >= new Date(newSettings.springSemesterEnd)
+            ) {
+                alert('Please ensure that all dates are logical. For example, the Winter Break Start Date should be before its End Date, and the Spring Semester Start Date should be after the Winter Break End Date.');
+                return;
+            }
+
+
+            saveSettings(newSettings);
+            initializeSettings();
+            populatePlanSelectors();
+            document.getElementById('settings-edit').style.display = 'none';
+            document.getElementById('settings-view').style.display = 'block';
+        });
+
+
+        // Format Date Utility Function
+        function formatDateForInput(dateStr) {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+
+        // Expense Categories Data
+        const defaultExpenses = {
+            frugal: {
+                essential: {
+                    Groceries: 30,
+                    Rent: 0,
+                    Transportation: 10,
+                    Health: 5,
+                    "Personal Care": 5,
+                    "Education-Related": 20,
+                    "Credit Card Payments": 10,
+                    "Other Loan Payments": 0,
+                },
+                nonEssential: {
+                    Entertainment: 0,
+                    "Eating Out": 0,
+                    Splurges: 0,
+                    Hobbies: 0,
+                    "Setting Money Aside": 5,
+                },
+            },
+            average: {
+                essential: {
+                    Groceries: 45,
+                    Rent: 0,
+                    Transportation: 15,
+                    Health: 7.5,
+                    "Personal Care": 7.5,
+                    "Education-Related": 30,
+                    "Credit Card Payments": 15,
+                    "Other Loan Payments": 0,
+                },
+                nonEssential: {
+                    Entertainment: 10,
+                    "Eating Out": 15,
+                    Splurges: 10,
+                    Hobbies: 10,
+                    "Setting Money Aside": 7.5,
+                },
+            },
+            glamorous: {
+                essential: {
+                    Groceries: 70,
+                    Rent: 200,
+                    Transportation: 30,
+                    Health: 15,
+                    "Personal Care": 20,
+                    "Education-Related": 50,
+                    "Credit Card Payments": 30,
+                    "Other Loan Payments": 10,
+                },
+                nonEssential: {
+                    Entertainment: 50,
+                    "Eating Out": 50,
+                    Splurges: 40,
+                    Hobbies: 30,
+                    "Setting Money Aside": 20,
+                },
+            },
+        };
+
+
+        let currentEditRow = null;
+
+
+        function displayExpenseSections(categoryType) {
+            const expenseSections = document.querySelector("#expense-sections");
+            expenseSections.innerHTML = ""; // Clear existing sections
+
+
+            const essentialExpenses = defaultExpenses[categoryType].essential;
+            const nonEssentialExpenses = defaultExpenses[categoryType].nonEssential;
+
+
+            // Change button colors
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(categoryType).classList.add('selected');
+
+
+            // Build essential section
+            const essentialSection = createExpenseTable(
+                "Essential Expenses",
+                essentialExpenses,
+                "essential-edit",
+                "essential-add"
+            );
+            const nonEssentialSection = createExpenseTable(
+                "Non-Essential Expenses",
+                nonEssentialExpenses,
+                "nonessential-edit",
+                "nonessential-add"
+            );
+
+
+            expenseSections.appendChild(essentialSection);
+            expenseSections.appendChild(nonEssentialSection);
+
+
+            addEditFunctionality("essential-edit", "essential-add");
+            addEditFunctionality("nonessential-edit", "nonessential-add");
+        }
+
+
+        function createExpenseTable(title, data, editBtnId, addBtnId) {
+            const section = document.createElement("div");
+            section.className = "expense-table";
+
+
+            const sectionTitle = document.createElement("h3");
+            sectionTitle.innerText = title;
+            section.appendChild(sectionTitle);
+
+
+            const editButton = document.createElement("button");
+            editButton.innerText = "Edit";
+            editButton.id = editBtnId;
+            editButton.className = "edit-btn";
+            section.appendChild(editButton);
+
+
+            const addButton = document.createElement("button");
+            addButton.innerText = "+";
+            addButton.id = addBtnId;
+            addButton.className = "add-btn";
+            section.appendChild(addButton);
+
+
+            const table = document.createElement("table");
+            const headerRow = document.createElement("tr");
+            const header1 = document.createElement("th");
+            header1.innerText = "Category";
+            const header2 = document.createElement("th");
+            header2.innerText = "Amount";
+            const header3 = document.createElement("th");
+            header3.innerText = "Actions";
+            headerRow.appendChild(header1);
+            headerRow.appendChild(header2);
+            headerRow.appendChild(header3);
+            table.appendChild(headerRow);
+
+
+            // Add data rows
+            for (const [category, value] of Object.entries(data)) {
+                const row = document.createElement("tr");
+                const cell1 = document.createElement("td");
+                cell1.innerText = category;
+                const cell2 = document.createElement("td");
+                const input = document.createElement("input");
+                input.type = "number";
+                input.value = value;
+                input.dataset.initialValue = value; // Store the initial value to check for changes later
+                cell2.appendChild(input);
+
+
+                const cell3 = document.createElement("td");
+                const editIcon = document.createElement("img");
+                editIcon.src = "https://img.icons8.com/material-rounded/24/000000/pencil.png";
+                editIcon.className = "edit-icon";
+                editIcon.addEventListener("click", () => openModal(row, category, value));
+                cell3.appendChild(editIcon);
+
+
+                const editLabel = document.createElement("span");
+                editLabel.innerText = " Edit";
+                cell3.appendChild(editLabel);
+
+
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                row.appendChild(cell3);
+
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerText = "Delete";
+                deleteBtn.addEventListener("click", function () {
+                    table.removeChild(row);
+                });
+
+
+                row.appendChild(deleteBtn);
+
+
+                table.appendChild(row);
+            }
+
+
+            section.appendChild(table);
+
+
+            return section;
+        }
+
+
+        function openModal(row, category, value) {
+            currentEditRow = row;
+            const modal = document.getElementById("editModal");
+            modal.style.display = "block";
+
+
+            const frequency = row.dataset.frequency || "weekly";
+            const coveredBy = row.dataset.coveredBy || "Employment Income";
+            const todayDate = row.dataset.todayDate || document.getElementById("start-plan").value;
+            const endDate = row.dataset.endDate || document.getElementById("end-plan").value;
+
+
+            document.getElementById("modal-category").value = category;
+            document.getElementById("modal-amount").value = value;
+            document.getElementById("modal-frequency").value = frequency;
+            document.getElementById("modal-covered-by").value = coveredBy;
+            document.getElementById("modal-today-date").value = formatDateForInput(todayDate);
+            document.getElementById("modal-end-date").value = formatDateForInput(endDate);
+        }
+
+
+        function closeModal() {
+            const modal = document.getElementById("editModal");
+            modal.style.display = "none";
+        }
+
+
+        function saveModalData() {
+            if (currentEditRow) {
+                const category = document.getElementById("modal-category").value.trim();
+                const amount = parseFloat(document.getElementById("modal-amount").value) || 0;
+                const frequency = document.getElementById("modal-frequency").value;
+                const coveredBy = document.getElementById("modal-covered-by").value;
+                const todayDate = document.getElementById("modal-today-date").value;
+                const endDate = document.getElementById("modal-end-date").value;
+
+
+                // Validation: Start Date should be before End Date
+                if (new Date(todayDate) >= new Date(endDate)) {
+                    alert('Start Date must be before End Date.');
+                    return;
+                }
+
+
+                if (category === "") {
+                    alert('Category Name cannot be empty.');
+                    return;
+                }
+
+
+                // Update row data
+                currentEditRow.querySelector("td:first-child").innerText = category;
+                currentEditRow.querySelector("input[type='number']").value = amount;
+
+
+                currentEditRow.dataset.frequency = frequency;
+                currentEditRow.dataset.coveredBy = coveredBy;
+                currentEditRow.dataset.todayDate = todayDate;
+                currentEditRow.dataset.endDate = endDate;
+
+
+                // Store the initial value to avoid recalculating if unchanged
+                const amountInput = currentEditRow.querySelector("input[type='number']");
+                amountInput.dataset.initialValue = amount;
+
+
+                closeModal();
+
+
+                // Optionally, update the timeline if dates are related to the expense
+                // For now, we'll assume expenses don't affect the timeline
+            }
+        }
+
+
+        function addEditFunctionality(editBtnId, addBtnId) {
+            const editButton = document.getElementById(editBtnId);
+            const addButton = document.getElementById(addBtnId);
+            let isEditing = false;
+
+
+            editButton.addEventListener("click", function () {
+                const tableInputs = this.parentNode.querySelectorAll("input");
+                isEditing = !isEditing;
+
+
+                tableInputs.forEach((input) => {
+                    input.readOnly = !isEditing;
+                });
+
+
+                if (isEditing) {
+                    this.innerText = "Save Changes";
+                } else {
+                    this.innerText = "Edit";
+                    // Optionally, save changes to localStorage or handle as needed
+                }
+            });
+
+
+            addButton.addEventListener("click", function () {
+                const table = this.parentNode.querySelector("table");
+                const row = document.createElement("tr");
+
+
+                const newCategoryCell = document.createElement("td");
+                const newInputCell = document.createElement("td");
+                const newInput = document.createElement("input");
+
+
+                newInput.type = "number";
+                newInput.value = 0;
+                newInputCell.appendChild(newInput);
+
+
+                newCategoryCell.contentEditable = true;
+                newCategoryCell.innerText = "New Category";
+
+
+                const cellActions = document.createElement("td");
+                const editIcon = document.createElement("img");
+                editIcon.src = "https://img.icons8.com/material-rounded/24/000000/pencil.png";
+                editIcon.className = "edit-icon";
+                editIcon.addEventListener("click", () => openModal(row, "New Category", 0));
+                cellActions.appendChild(editIcon);
+
+
+                const editLabel = document.createElement("span");
+                editLabel.innerText = " Edit";
+                cellActions.appendChild(editLabel);
+
+
+                row.appendChild(newCategoryCell);
+                row.appendChild(newInputCell);
+                row.appendChild(cellActions);
+
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerText = "Delete";
+                deleteBtn.addEventListener("click", function () {
+                    table.removeChild(row);
+                });
+
+
+                row.appendChild(deleteBtn);
+
+
+                table.appendChild(row);
+
+
+                if (!isEditing) {
+                    editButton.click();
+                }
+            });
+        }
+
+
+        function calculateTotal() {
+            let total = 0;
+
+
+            // Get plan start and end dates
+            const startPlan = new Date(document.getElementById('start-plan').value);
+            const endPlan = new Date(document.getElementById('end-plan').value);
+
+
+            // Calculate duration in different periods
+            const durationInDays = Math.ceil((endPlan - startPlan) / (1000 * 60 * 60 * 24)) + 1;
+            const durationInWeeks = durationInDays / 7;
+            const durationInMonths = durationInDays / 30.44; // Average days per month
+            const durationInYears = durationInDays / 365.25;
+
+
+            // Iterate through each expense row
+            document.querySelectorAll("#expense-sections table tr").forEach((row) => {
+                const inputs = row.querySelectorAll("input");
+                if (inputs.length > 0) {
+                    const amount = parseFloat(inputs[0].value) || 0;
+                    const frequency = row.dataset.frequency || "weekly";
+
+
+                    switch (frequency) {
+                        case "daily":
+                            total += amount * durationInDays;
+                            break;
+                        case "weekly":
+                            total += amount * durationInWeeks;
+                            break;
+                        case "monthly":
+                            total += amount * durationInMonths;
+                            break;
+                        case "yearly":
+                            total += amount * durationInYears;
+                            break;
+                        default:
+                            // Default to weekly if unknown frequency
+                            total += amount * durationInWeeks;
+                    }
+                }
+            });
+
+
+            // Display total cost
+            document.getElementById("total-cost").innerText = `$${total.toFixed(2)}`;
+
+
+            // Calculate average monthly spending
+            const averageMonthlySpending = durationInMonths > 0 ? (total / durationInMonths) : 0;
+            document.getElementById("monthly-cost").innerText = `$${averageMonthlySpending.toFixed(2)}`;
+        }
+
+
+        function saveData() {
+            // Save plan selections
+            const planSelections = {
+                startPlan: document.getElementById('start-plan').value,
+                endPlan: document.getElementById('end-plan').value
+            };
+            localStorage.setItem('planSelections', JSON.stringify(planSelections));
+
+
+            // Optionally, save other data as needed
+            alert('Data has been saved successfully.');
+
+
+            // Update the timeline after saving
+            updateTimeline();
+        }
+
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById("editModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+
+        // Initialize the app on page load
+        window.onload = initializeApp;
+
+
+        // Plan Timeline Update Function
+        function updateTimeline() {
+            const settings = loadSettings();
+            const startPlanValue = document.getElementById('start-plan').value;
+            const endPlanValue = document.getElementById('end-plan').value;
+
+
+            if (!startPlanValue || !endPlanValue) {
+                // If either date is not selected, clear the timeline
+                document.getElementById('winter-break-segment').style.width = '0%';
+                document.getElementById('winter-break-segment').style.left = '0%';
+                document.getElementById('spring-semester-segment').style.width = '0%';
+                document.getElementById('spring-semester-segment').style.left = '0%';
+                document.getElementById('start-marker-label').innerText = '';
+                document.getElementById('end-marker-label').innerText = '';
+                document.getElementById('plan-start-marker').style.left = '0%';
+                document.getElementById('plan-end-marker').style.left = '0%';
+                document.querySelector('.winter-break-label').style.left = '0%';
+                document.querySelector('.spring-semester-label').style.left = '0%';
+                return;
+            }
+
+
+            const startPlan = new Date(startPlanValue);
+            const endPlan = new Date(endPlanValue);
+
+
+            if (startPlan >= endPlan) {
+                // If end date is before or same as start date, clear the timeline
+                document.getElementById('winter-break-segment').style.width = '0%';
+                document.getElementById('winter-break-segment').style.left = '0%';
+                document.getElementById('spring-semester-segment').style.width = '0%';
+                document.getElementById('spring-semester-segment').style.left = '0%';
+                document.getElementById('start-marker-label').innerText = '';
+                document.getElementById('end-marker-label').innerText = '';
+                document.getElementById('plan-start-marker').style.left = '0%';
+                document.getElementById('plan-end-marker').style.left = '0%';
+                document.querySelector('.winter-break-label').style.left = '0%';
+                document.querySelector('.spring-semester-label').style.left = '0%';
+                return;
+            }
+
+
+            // Define the overall timeline start and end based on settings and plan dates
+            const timelineStart = new Date(Math.min(
+                new Date(settings.winterBreakStart),
+                new Date(settings.springSemesterStart),
+                startPlan
+            ));
+            const timelineEnd = new Date(Math.max(
+                new Date(settings.winterBreakEnd),
+                new Date(settings.springSemesterEnd),
+                endPlan
+            ));
+            const timelineDuration = timelineEnd - timelineStart;
+
+
+            // Prevent division by zero
+            if (timelineDuration <= 0) {
+                console.error("Invalid timeline duration.");
+                return;
+            }
+
+
+            // Calculate Winter Break segment
+            const winterStart = new Date(settings.winterBreakStart);
+            const winterEnd = new Date(settings.winterBreakEnd);
+            let winterLeftPercent = ((winterStart - timelineStart) / timelineDuration) * 100;
+            let winterWidthPercent = ((winterEnd - winterStart) / timelineDuration) * 100;
+
+
+            // Ensure percentages are within 0-100%
+            winterLeftPercent = Math.max(0, Math.min(100, winterLeftPercent));
+            winterWidthPercent = Math.max(0, Math.min(100 - winterLeftPercent, winterWidthPercent));
+
+
+            document.getElementById('winter-break-segment').style.left = `${winterLeftPercent}%`;
+            document.getElementById('winter-break-segment').style.width = `${winterWidthPercent}%`;
+
+
+            // Calculate Spring Semester segment
+            const springStart = new Date(settings.springSemesterStart);
+            const springEnd = new Date(settings.springSemesterEnd);
+            let springLeftPercent = ((springStart - timelineStart) / timelineDuration) * 100;
+            let springWidthPercent = ((springEnd - springStart) / timelineDuration) * 100;
+
+
+            // Ensure percentages are within 0-100%
+            springLeftPercent = Math.max(0, Math.min(100, springLeftPercent));
+            springWidthPercent = Math.max(0, Math.min(100 - springLeftPercent, springWidthPercent));
+
+
+            document.getElementById('spring-semester-segment').style.left = `${springLeftPercent}%`;
+            document.getElementById('spring-semester-segment').style.width = `${springWidthPercent}%`;
+
+
+            // Calculate Plan Start and End Positions
+            const planStartPercent = ((startPlan - timelineStart) / timelineDuration) * 100;
+            const planEndPercent = ((endPlan - timelineStart) / timelineDuration) * 100;
+
+
+            // Ensure percentages are within 0-100%
+            const clampedPlanStartPercent = Math.max(0, Math.min(100, planStartPercent));
+            const clampedPlanEndPercent = Math.max(0, Math.min(100, planEndPercent));
+
+
+            // Update Start and End Marker Labels
+            const planStartLabel = formatDate(startPlanValue);
+            const planEndLabel = formatDate(endPlanValue);
+            document.getElementById('start-marker-label').innerText = planStartLabel;
+            document.getElementById('end-marker-label').innerText = planEndLabel;
+
+
+            // Position the markers based on Plan Start and End dates
+            document.getElementById('plan-start-marker').style.left = `${clampedPlanStartPercent}%`;
+            document.getElementById('plan-end-marker').style.left = `${clampedPlanEndPercent}%`;
+
+
+            // Update Segment Labels Positions (center of segments)
+            const winterLabelPosition = winterLeftPercent + (winterWidthPercent / 2);
+            const springLabelPosition = springLeftPercent + (springWidthPercent / 2);
+            document.querySelector('.winter-break-label').style.left = `${winterLabelPosition}%`;
+            document.querySelector('.spring-semester-label').style.left = `${springLabelPosition}%`;
+        }
+
+
+        // Call updateTimeline whenever Start of Plan or End of Plan changes
+        document.getElementById('start-plan').addEventListener('change', updateTimeline);
+        document.getElementById('end-plan').addEventListener('change', updateTimeline);
+    </script>
+</body>
+</html>
